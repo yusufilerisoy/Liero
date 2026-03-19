@@ -254,6 +254,77 @@ export class Renderer {
         ctx.textAlign = 'left';
     }
 
+    drawMinimap(players, terrain) {
+        const ctx = this.ctx;
+        const mapW = 160;
+        const mapH = 80;
+        const barH = 64;
+        const padding = 8;
+        const mx = VIEWPORT_W - mapW - padding;
+        const my = VIEWPORT_H - barH - mapH - padding;
+        const scaleX = mapW / WORLD_WIDTH;
+        const scaleY = mapH / WORLD_HEIGHT;
+
+        // Cache terrain to offscreen canvas (update every 30 frames)
+        if (!this._minimapCanvas) {
+            this._minimapCanvas = document.createElement('canvas');
+            this._minimapCanvas.width = mapW;
+            this._minimapCanvas.height = mapH;
+            this._minimapFrame = 0;
+        }
+        if (this._minimapFrame % 30 === 0) {
+            const mc = this._minimapCanvas.getContext('2d');
+            mc.clearRect(0, 0, mapW, mapH);
+            mc.fillStyle = 'rgba(100,80,60,0.6)';
+            const step = 10;
+            for (let wy = 0; wy < WORLD_HEIGHT; wy += step) {
+                for (let wx = 0; wx < WORLD_WIDTH; wx += step) {
+                    if (terrain.isSolid(wx, wy)) {
+                        mc.fillRect(wx * scaleX, wy * scaleY,
+                            Math.max(1, step * scaleX), Math.max(1, step * scaleY));
+                    }
+                }
+            }
+        }
+        this._minimapFrame++;
+
+        // Background
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.beginPath();
+        ctx.roundRect(mx, my, mapW, mapH, 6);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Cached terrain
+        ctx.drawImage(this._minimapCanvas, mx, my);
+
+        // Camera viewport
+        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+            mx + this.camX * scaleX, my + this.camY * scaleY,
+            VIEWPORT_W * scaleX, (VIEWPORT_H - barH) * scaleY
+        );
+
+        // Players — dot + pulse
+        for (const p of players) {
+            if (p.dead) continue;
+            const px = mx + p.x * scaleX;
+            const py = my + p.y * scaleY;
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = 0.35;
+            ctx.beginPath();
+            ctx.arc(px, py, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            ctx.beginPath();
+            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
     drawWeaponBar(player) {
         const ctx = this.ctx;
         const barH = 64;

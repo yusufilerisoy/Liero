@@ -676,6 +676,8 @@ export class Game {
         if (this.players[0]) {
             this.renderer.drawWeaponBar(this.players[0]);
         }
+        // Minimap radar
+        this.renderer.drawMinimap(this.players, this.terrain);
     }
 
     _getScores() {
