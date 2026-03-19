@@ -1,4 +1,4 @@
-const CACHE_NAME = 'liero-web-v18';
+const CACHE_NAME = 'liero-web-v19';
 const ASSETS = [
     './',
     './index.html',
@@ -23,6 +23,8 @@ const ASSETS = [
     './js/sprites.js',
     './js/touch.js',
     './assets/sprites.png',
+    './assets/icons/icon-192.png',
+    './assets/icons/icon-512.png',
     './manifest.json',
 ];
 
