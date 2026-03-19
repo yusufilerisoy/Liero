@@ -28,3 +28,32 @@ html, body {
         height: auto !important;
     }
 }
+
+/* Force landscape — show rotate message in portrait */
+#rotate-msg {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    background: #0a0a0a;
+    color: #fff;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 20px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#rotate-msg span {
+    font-size: 48px;
+}
+
+@media (pointer: coarse) and (orientation: portrait) {
+    #rotate-msg {
+        display: flex !important;
+    }
+    #game, #touch-controls {
+        display: none !important;
+    }
+}

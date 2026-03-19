@@ -13,11 +13,16 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <div id="rotate-msg"><span>&#128260;</span>Liero requires landscape mode<br>Please rotate your device</div>
     <canvas id="game"></canvas>
     <script type="module" src="js/main.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+        }
+        // Lock to landscape
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
         }
     </script>
 </body>
