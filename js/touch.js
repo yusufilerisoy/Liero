@@ -314,12 +314,30 @@ export class TouchControls {
     }
 
     // Get input matching the same format as keyboard getP1()
-    getInput() {
+    getInput(ropeAttached) {
         const deadzone = 0.25;
         const mx = Math.abs(this.moveX) > deadzone ? this.moveX : 0;
         const my = Math.abs(this.moveY) > deadzone ? this.moveY : 0;
         const ax = Math.abs(this.aimX) > deadzone ? this.aimX : 0;
         const ay = Math.abs(this.aimY) > deadzone ? this.aimY : 0;
+
+        if (ropeAttached) {
+            // Rope mode: left stick = reel up/down, right stick = swing left/right
+            return {
+                left: ax < -deadzone,
+                right: ax > deadzone,
+                up: my < -deadzone,
+                down: my > deadzone,
+                aimUp: false,
+                aimDown: false,
+                aimUpOnly: false,
+                aimDownOnly: false,
+                fire: this.fireDown,
+                changeWeapon: this.weaponPressedThisFrame,
+                rope: this.ropeDown,
+                jump: this.jumpDown,
+            };
+        }
 
         return {
             left: mx < -deadzone,

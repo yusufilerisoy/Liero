@@ -516,7 +516,9 @@ export class Game {
     _getP1Input() {
         const kb = this.input.getP1();
         if (!this.touch || !this.touch.active) return kb;
-        const tc = this.touch.getInput();
+        const p1 = this.players[0];
+        const ropeAttached = p1 && p1.rope && p1.rope.state === 'attached';
+        const tc = this.touch.getInput(ropeAttached);
         return {
             left: kb.left || tc.left,
             right: kb.right || tc.right,
