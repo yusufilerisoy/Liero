@@ -82,9 +82,9 @@ export class TouchControls {
 
             .joystick-zone {
                 position: absolute;
+                top: 0;
                 bottom: 0;
-                width: 40%;
-                height: 60%;
+                width: 50%;
                 pointer-events: auto;
                 touch-action: none;
             }
