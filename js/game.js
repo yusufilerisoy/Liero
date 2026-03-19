@@ -492,7 +492,7 @@ export class Game {
     }
 
     _separatePlayers() {
-        const minDist = PLAYER_RADIUS * 3; // minimum distance between players
+        const minDist = PLAYER_RADIUS * 8; // keep good fighting distance
         for (let i = 0; i < this.players.length; i++) {
             const a = this.players[i];
             if (a.dead) continue;
@@ -505,11 +505,9 @@ export class Game {
                 if (dist < minDist && dist > 0) {
                     const nx = dx / dist;
                     const ny = dy / dist;
-                    const push = (minDist - dist) * 0.5;
+                    const push = (minDist - dist) * 0.4;
                     a.x -= nx * push;
-                    a.y -= ny * push;
                     b.x += nx * push;
-                    b.y += ny * push;
                 }
             }
         }

@@ -126,8 +126,12 @@ export class Bot {
         const dx = this.target.x - p.x;
         const dy = this.target.y - p.y;
 
-        // Always chase
-        this.moveDir = dx > 0 ? 1 : -1;
+        // Chase but keep distance if too close
+        if (dist < 80) {
+            this.moveDir = dx > 0 ? -1 : 1;
+        } else {
+            this.moveDir = dx > 0 ? 1 : -1;
+        }
 
         // Jump constantly to climb terrain
         if (p.grounded) {
@@ -150,8 +154,12 @@ export class Bot {
         const p = this.player;
         const dx = this.target.x - p.x;
 
-        // Always chase toward target — never retreat
-        this.moveDir = dx > 0 ? 1 : -1;
+        // Keep fighting distance — back off if too close, chase if far
+        if (dist < 80) {
+            this.moveDir = dx > 0 ? -1 : 1; // retreat
+        } else {
+            this.moveDir = dx > 0 ? 1 : -1; // chase
+        }
 
         this.wantFire = true;
         this._selectWeapon(dist);
