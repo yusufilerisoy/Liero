@@ -13,8 +13,6 @@ export class Renderer {
         this.ctx = canvas.getContext('2d');
         this.canvas.width = VIEWPORT_W;
         this.canvas.height = VIEWPORT_H;
-        this.canvas.style.width = VIEWPORT_W * VIEWPORT_SCALE + 'px';
-        this.canvas.style.height = VIEWPORT_H * VIEWPORT_SCALE + 'px';
         this.ctx.imageSmoothingEnabled = true;
         this.ctx.imageSmoothingQuality = 'high';
 
