@@ -1,4 +1,4 @@
-const CACHE_NAME = 'liero-web-v21';
+const CACHE_NAME = 'liero-web-v22';
 const ASSETS = [
     './',
     './index.html',

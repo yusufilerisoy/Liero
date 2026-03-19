@@ -11,7 +11,7 @@ import { Bot } from './bot.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
 import { NetworkClient } from './network.js';
-import { RESPAWN_TIME, WEAPONS, VIEWPORT_SCALE } from './config.js';
+import { RESPAWN_TIME, WEAPONS, VIEWPORT_SCALE, VIEWPORT_W } from './config.js';
 
 export const GAME_STATE = {
     MENU: 'menu',
@@ -61,21 +61,42 @@ export class Game {
         // Track previous key states for edge detection
         this._prevKeys = {};
 
-        // Mouse click handler for weapon bar
-        this.canvas.addEventListener('click', (e) => {
-            if (this.state !== GAME_STATE.PLAYING || this.players.length === 0) return;
+        // Click/touch handler for canvas
+        this._menuClicked = -1; // index of clicked menu item
+        const handleCanvasClick = (clientX, clientY) => {
             const rect = this.canvas.getBoundingClientRect();
             const scaleX = this.canvas.width / rect.width;
             const scaleY = this.canvas.height / rect.height;
-            const cx = (e.clientX - rect.left) * scaleX;
-            const cy = (e.clientY - rect.top) * scaleY;
-            const idx = this.renderer.getWeaponBarClick(cx, cy);
-            if (idx >= 0) {
-                this.players[0].weaponIndex = idx;
-                this.audio.resume();
-                this.audio.menuSelect();
+            const cx = (clientX - rect.left) * scaleX;
+            const cy = (clientY - rect.top) * scaleY;
+
+            if (this.state === GAME_STATE.PLAYING && this.players.length > 0) {
+                const idx = this.renderer.getWeaponBarClick(cx, cy);
+                if (idx >= 0) {
+                    this.players[0].weaponIndex = idx;
+                    this.audio.resume();
+                    this.audio.menuSelect();
+                }
+            } else if (this.state === GAME_STATE.MENU) {
+                // Menu items: y=320, 60px apart, 4 items, centered width 440
+                const menuX = VIEWPORT_W / 2 - 220;
+                for (let i = 0; i < 4; i++) {
+                    const itemY = 320 + i * 60 - 30;
+                    if (cx >= menuX && cx <= menuX + 440 && cy >= itemY && cy <= itemY + 48) {
+                        this._menuClicked = i;
+                        break;
+                    }
+                }
+            } else if (this.state === GAME_STATE.ROUND_END || this.state === GAME_STATE.GAME_OVER) {
+                this._menuClicked = 99; // any tap continues
             }
-        });
+        };
+        this.canvas.addEventListener('click', (e) => handleCanvasClick(e.clientX, e.clientY));
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                handleCanvasClick(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        }, { passive: true });
     }
 
     init() {
@@ -162,15 +183,31 @@ export class Game {
             this.menuIndex = (this.menuIndex + 1) % 4;
             this.audio.menuSelect();
         }
+
+        // Direct click/tap on menu item
+        if (this._menuClicked >= 0 && this._menuClicked < 4) {
+            this.menuIndex = this._menuClicked;
+            this._menuClicked = -1;
+            this.audio.menuConfirm();
+            this.audio.resume();
+            this._selectMenuItem();
+            return;
+        }
+        this._menuClicked = -1;
+
         if (this._justPressed('Enter') || this._justPressed('Space') || this._touchTapped()) {
             this.audio.menuConfirm();
             this.audio.resume();
-            switch (this.menuIndex) {
-                case 0: this._startGame('single'); break;
-                case 1: this._startGame('local'); break;
-                case 2: this.state = GAME_STATE.LAN_MENU; break;
-                case 3: this.state = GAME_STATE.SETTINGS; this.settingsIndex = 0; break;
-            }
+            this._selectMenuItem();
+        }
+    }
+
+    _selectMenuItem() {
+        switch (this.menuIndex) {
+            case 0: this._startGame('single'); break;
+            case 1: this._startGame('local'); break;
+            case 2: this.state = GAME_STATE.LAN_MENU; break;
+            case 3: this.state = GAME_STATE.SETTINGS; this.settingsIndex = 0; break;
         }
     }
 
