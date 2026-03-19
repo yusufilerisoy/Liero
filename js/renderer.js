@@ -36,22 +36,24 @@ export class Renderer {
     }
 
     updateCamera(players, dt, followIndex = 0) {
+        const barH = 64; // weapon bar height
+        const viewH = VIEWPORT_H - barH; // usable game area
         const target = players[followIndex];
         if (target && !target.dead) {
             this.targetCamX = target.x - VIEWPORT_W / 2;
-            this.targetCamY = target.y - VIEWPORT_H / 2;
+            this.targetCamY = target.y - viewH / 2;
         } else {
             for (const p of players) {
                 if (!p.dead) {
                     this.targetCamX = p.x - VIEWPORT_W / 2;
-                    this.targetCamY = p.y - VIEWPORT_H / 2;
+                    this.targetCamY = p.y - viewH / 2;
                     break;
                 }
             }
         }
 
         this.targetCamX = clamp(this.targetCamX, 0, WORLD_WIDTH - VIEWPORT_W);
-        this.targetCamY = clamp(this.targetCamY, 0, WORLD_HEIGHT - VIEWPORT_H);
+        this.targetCamY = clamp(this.targetCamY, 0, WORLD_HEIGHT - viewH);
 
         this.camX = lerp(this.camX, this.targetCamX, 1 - Math.pow(0.01, dt));
         this.camY = lerp(this.camY, this.targetCamY, 1 - Math.pow(0.01, dt));
