@@ -11,7 +11,7 @@ import { Bot } from './bot.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
 import { NetworkClient } from './network.js';
-import { RESPAWN_TIME, WEAPONS, VIEWPORT_SCALE, VIEWPORT_W } from './config.js';
+import { RESPAWN_TIME, WEAPONS, VIEWPORT_SCALE, VIEWPORT_W, PLAYER_RADIUS } from './config.js';
 
 export const GAME_STATE = {
     MENU: 'menu',
@@ -56,6 +56,7 @@ export class Game {
             timeLimit: 180,
             difficulty: 'medium',
             sound: true,
+            botCount: 1,
         };
 
         // Track previous key states for edge detection
@@ -218,7 +219,7 @@ export class Game {
 
     // --- Settings ---
     _updateSettings(dt) {
-        const items = ['lives', 'timeLimit', 'difficulty', 'sound', 'back'];
+        const items = ['lives', 'botCount', 'timeLimit', 'difficulty', 'sound', 'back'];
 
         if (this._justPressed('ArrowUp')) {
             this.settingsIndex = (this.settingsIndex - 1 + items.length) % items.length;
@@ -248,6 +249,9 @@ export class Game {
                     const di = diffs.indexOf(this.settings.difficulty);
                     const ndi = Math.max(0, Math.min(diffs.length - 1, di + dir));
                     this.settings.difficulty = diffs[ndi];
+                    break;
+                case 'botCount':
+                    this.settings.botCount = Math.max(1, Math.min(5, this.settings.botCount + dir));
                     break;
                 case 'sound':
                     this.settings.sound = !this.settings.sound;
@@ -305,10 +309,15 @@ export class Game {
         p1.lives = this.settings.lives;
 
         if (mode === 'single') {
-            const p2 = new Player(1, '#cc0000', 'BOT');
-            p2.lives = this.settings.lives;
-            this.players = [p1, p2];
-            this.bots = [new Bot(p2, this.settings.difficulty)];
+            const botColors = ['#cc0000', '#0088ff', '#ff8800', '#cc00cc', '#00cccc'];
+            const botNames = ['BOT1', 'BOT2', 'BOT3', 'BOT4', 'BOT5'];
+            this.players = [p1];
+            for (let i = 0; i < this.settings.botCount; i++) {
+                const bot = new Player(i + 1, botColors[i], botNames[i]);
+                bot.lives = this.settings.lives;
+                this.players.push(bot);
+                this.bots.push(new Bot(bot, this.settings.difficulty));
+            }
         } else if (mode === 'local') {
             const p2 = new Player(1, '#cc0000', 'P2');
             p2.lives = this.settings.lives;
@@ -426,6 +435,9 @@ export class Game {
             this.physics.updatePlayer(this.players[this.network.playerId || 0], dt);
         }
 
+        // Player separation — push apart if overlapping
+        this._separatePlayers();
+
         // Update projectiles and particles
         // Hook into explosions for sprite effects
         const origExplode = this.projectiles._explode.bind(this.projectiles);
@@ -477,6 +489,30 @@ export class Game {
 
         // Camera — follow P1 only
         this.renderer.updateCamera(this.players, dt, 0);
+    }
+
+    _separatePlayers() {
+        const minDist = PLAYER_RADIUS * 3; // minimum distance between players
+        for (let i = 0; i < this.players.length; i++) {
+            const a = this.players[i];
+            if (a.dead) continue;
+            for (let j = i + 1; j < this.players.length; j++) {
+                const b = this.players[j];
+                if (b.dead) continue;
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < minDist && dist > 0) {
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const push = (minDist - dist) * 0.5;
+                    a.x -= nx * push;
+                    a.y -= ny * push;
+                    b.x += nx * push;
+                    b.y += ny * push;
+                }
+            }
+        }
     }
 
     _getP1Input() {

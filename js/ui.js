@@ -91,6 +91,7 @@ export class UI {
 
         const items = [
             { label: 'Lives', value: settings.lives, min: 1, max: 20 },
+            { label: 'Bots', value: settings.botCount },
             { label: 'Time Limit', value: settings.timeLimit === 0 ? 'None' : settings.timeLimit + 's' },
             { label: 'Bot Difficulty', value: settings.difficulty },
             { label: 'Sound', value: settings.sound ? 'ON' : 'OFF' },
