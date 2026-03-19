@@ -73,7 +73,7 @@ export class UI {
         ctx.fillStyle = '#555555';
         ctx.fillText('Arrow Keys / Enter to select', VIEWPORT_W / 2, VIEWPORT_H - 70);
         ctx.font = '14px "Segoe UI", Arial, sans-serif';
-        ctx.fillText('P1: WASD + Q/E aim + LCtrl fire + R weapon + F rope', VIEWPORT_W / 2, VIEWPORT_H - 40);
+        ctx.fillText('Arrows move + Q/E aim + Space fire + R weapon + F rope', VIEWPORT_W / 2, VIEWPORT_H - 40);
         ctx.textAlign = 'left';
     }
 

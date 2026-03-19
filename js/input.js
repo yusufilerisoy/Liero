@@ -49,21 +49,21 @@ export class Input {
             code === 'ControlLeft' || code === 'ShiftLeft';
     }
 
-    // Player 1 controls (WASD + nearby keys)
+    // Player 1 controls (Arrow keys + Space)
     getP1() {
         return {
-            left: this.isDown('KeyA'),
-            right: this.isDown('KeyD'),
-            up: this.isDown('KeyW'),
-            down: this.isDown('KeyS'),
-            aimUp: this.isDown('KeyQ') || this.isDown('KeyW'),
-            aimDown: this.isDown('KeyE') || this.isDown('KeyS'),
+            left: this.isDown('ArrowLeft'),
+            right: this.isDown('ArrowRight'),
+            up: this.isDown('ArrowUp'),
+            down: this.isDown('ArrowDown'),
+            aimUp: this.isDown('KeyQ') || this.isDown('ArrowUp'),
+            aimDown: this.isDown('KeyE') || this.isDown('ArrowDown'),
             aimUpOnly: this.isDown('KeyQ'),
             aimDownOnly: this.isDown('KeyE'),
-            fire: this.isDown('ControlLeft') || this.isDown('ShiftLeft'),
+            fire: this.isDown('Space'),
             changeWeapon: this.isDown('KeyR'),
             rope: this.isDown('KeyF'),
-            jump: this.isDown('KeyW'),
+            jump: this.isDown('ArrowUp'),
         };
     }
 
