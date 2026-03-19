@@ -333,7 +333,7 @@ export class TouchControls {
             fire: this.fireDown,
             changeWeapon: this.weaponPressedThisFrame,
             rope: this.ropeDown,
-            jump: my < -deadzone, // up on joystick = jump
+            jump: this.jumpDown || my < -deadzone,
         };
     }
 
