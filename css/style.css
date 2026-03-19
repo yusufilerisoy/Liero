@@ -29,31 +29,30 @@ html, body {
     }
 }
 
-/* Force landscape — show rotate message in portrait */
-#rotate-msg {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 9999;
-    background: #0a0a0a;
-    color: #fff;
-    font-family: "Segoe UI", Arial, sans-serif;
-    font-size: 20px;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 16px;
-}
-
-#rotate-msg span {
-    font-size: 48px;
-}
-
-@media (pointer: coarse) and (orientation: portrait) {
-    #rotate-msg {
-        display: flex !important;
+/* Force landscape rendering even in portrait */
+@media (orientation: portrait) {
+    #game {
+        transform: rotate(90deg);
+        transform-origin: center center;
+        width: 100vh !important;
+        height: 100vw !important;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-left: -50vh;
+        margin-top: -50vw;
     }
-    #game, #touch-controls {
-        display: none !important;
+    #touch-controls {
+        transform: rotate(90deg);
+        transform-origin: center center;
+        width: 100vh;
+        height: 100vw;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-left: -50vh;
+        margin-top: -50vw;
     }
 }
+
+#rotate-msg { display: none; }
