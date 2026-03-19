@@ -1,0 +1,9 @@
+{
+    "name": "liero-web",
+    "version": "1.0.0",
+    "description": "Web-based clone of the classic 1998 Liero game",
+    "scripts": {
+        "server": "cd server && node server.js",
+        "start": "cd server && node server.js"
+    }
+}
