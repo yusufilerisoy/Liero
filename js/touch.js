@@ -353,4 +353,12 @@ export class TouchControls {
         this.weaponPressedThisFrame = false;
         // ropePressedThisFrame is consumed by wasRopePressed
     }
+
+    setGameplay(on) {
+        if (!this.container) return;
+        this.container.style.pointerEvents = on ? 'none' : 'none';
+        const zones = this.container.querySelectorAll('.joystick-zone, .touch-buttons');
+        zones.forEach(z => z.style.pointerEvents = on ? 'auto' : 'none');
+        zones.forEach(z => z.style.display = on ? '' : 'none');
+    }
 }

@@ -124,6 +124,11 @@ export class Game {
     }
 
     update(dt) {
+        // Show touch controls only during gameplay
+        if (this.touch && this.touch.active) {
+            this.touch.setGameplay(this.state === GAME_STATE.PLAYING);
+        }
+
         switch (this.state) {
             case GAME_STATE.MENU:
                 this._updateMenu(dt);
