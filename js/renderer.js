@@ -260,7 +260,7 @@ export class Renderer {
         const mapH = 80;
         const barH = 64;
         const padding = 8;
-        const mx = VIEWPORT_W - mapW - padding;
+        const mx = padding;
         const my = VIEWPORT_H - barH - mapH - padding;
         const scaleX = mapW / WORLD_WIDTH;
         const scaleY = mapH / WORLD_HEIGHT;
