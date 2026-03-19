@@ -93,7 +93,7 @@ export class Renderer {
 
             // Worm sprite
             if (this.spritesLoaded) {
-                const spriteKey = p.id === 0 ? 'wormRed' : 'wormGreen';
+                const spriteKey = p.id === 0 ? 'wormGreen' : 'wormRed';
                 const region = SPRITES[spriteKey];
                 if (p.facing < 0) {
                     this.sprites.drawFlipped(this.ctx, region, sx, sy - 4, WORM_SIZE, WORM_SIZE);
