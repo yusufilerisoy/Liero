@@ -305,11 +305,11 @@ export class Game {
         this.bots = [];
 
         // Create players
-        const p1 = new Player(0, '#00cc00', 'P1');
+        const p1 = new Player(0, '#cc0000', 'P1');
         p1.lives = this.settings.lives;
 
         if (mode === 'single') {
-            const botColors = ['#cc0000', '#0088ff', '#ff8800', '#cc00cc', '#00cccc'];
+            const botColors = ['#00cc00', '#0088ff', '#ff8800', '#cc00cc', '#00cccc'];
             const botNames = ['BOT1', 'BOT2', 'BOT3', 'BOT4', 'BOT5'];
             this.players = [p1];
             for (let i = 0; i < this.settings.botCount; i++) {
@@ -319,7 +319,7 @@ export class Game {
                 this.bots.push(new Bot(bot, this.settings.difficulty));
             }
         } else if (mode === 'local') {
-            const p2 = new Player(1, '#cc0000', 'P2');
+            const p2 = new Player(1, '#00cc00', 'P2');
             p2.lives = this.settings.lives;
             this.players = [p1, p2];
         }
@@ -344,8 +344,8 @@ export class Game {
         this.projectiles.clear();
         this.bots = [];
 
-        const p1 = new Player(0, '#00cc00', 'P1');
-        const p2 = new Player(1, '#cc0000', 'P2');
+        const p1 = new Player(0, '#cc0000', 'P1');
+        const p2 = new Player(1, '#00cc00', 'P2');
         p1.lives = msg.lives || 5;
         p2.lives = msg.lives || 5;
         this.players = [p1, p2];

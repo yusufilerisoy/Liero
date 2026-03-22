@@ -93,9 +93,9 @@ export class Renderer {
 
             // Worm sprite
             if (this.spritesLoaded) {
-                const spriteKey = p.id === 0 ? 'wormGreen' : 'wormRed';
+                const spriteKey = p.id === 0 ? 'wormRed' : 'wormGreen';
                 const region = SPRITES[spriteKey];
-                if (p.facing < 0) {
+                if (p.facing > 0) {
                     this.sprites.drawFlipped(this.ctx, region, sx, sy - 4, WORM_SIZE, WORM_SIZE);
                 } else {
                     this.sprites.drawCentered(this.ctx, region, sx, sy - 4, WORM_SIZE, WORM_SIZE);
@@ -161,6 +161,7 @@ export class Renderer {
             // Worm face
             if (this.spritesLoaded) {
                 const faceKey = p.id === 0 ? 'wormRed' : 'wormGreen';
+
                 this.sprites.draw(ctx, SPRITES[faceKey], hudX + 4, hudY + 4, faceSize, faceSize);
             }
 
