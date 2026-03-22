@@ -35,10 +35,26 @@ export class TouchControls {
         this.active = true;
         this._createUI();
         this._bindEvents();
+        this._bindFullscreen();
         // Tap on canvas for menu navigation
         document.getElementById('game').addEventListener('touchstart', (e) => {
             this._tapped = true;
         }, { passive: true });
+    }
+
+    _bindFullscreen() {
+        // Request fullscreen on first touch interaction
+        const requestFS = () => {
+            const el = document.documentElement;
+            const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+            if (req) {
+                req.call(el).catch(() => {});
+            }
+            // Also try to hide mobile browser UI via scrolling trick
+            window.scrollTo(0, 1);
+            document.removeEventListener('touchstart', requestFS);
+        };
+        document.addEventListener('touchstart', requestFS, { once: true, passive: true });
     }
 
     _createUI() {
@@ -56,11 +72,15 @@ export class TouchControls {
                     <div class="joystick-knob" id="aim-knob"></div>
                 </div>
             </div>
-            <div class="touch-buttons">
-                <button class="touch-btn fire-btn" id="btn-fire">FIRE</button>
-                <button class="touch-btn rope-btn" id="btn-rope">ROPE</button>
-                <button class="touch-btn weapon-btn" id="btn-weapon">WPN</button>
-                <button class="touch-btn jump-btn" id="btn-jump">JUMP</button>
+            <div class="touch-buttons" id="touch-buttons">
+                <div class="btn-row">
+                    <button class="touch-btn fire-btn" id="btn-fire">FIRE</button>
+                    <button class="touch-btn jump-btn" id="btn-jump">JUMP</button>
+                </div>
+                <div class="btn-row">
+                    <button class="touch-btn weapon-btn" id="btn-weapon">WPN</button>
+                    <button class="touch-btn rope-btn" id="btn-rope">ROPE</button>
+                </div>
             </div>
         `;
         document.body.appendChild(this.container);
@@ -83,13 +103,20 @@ export class TouchControls {
             .joystick-zone {
                 position: absolute;
                 top: 0;
-                bottom: 0;
-                width: 50%;
+                width: 40%;
                 pointer-events: auto;
                 touch-action: none;
             }
-            .left-zone { left: 0; }
-            .right-zone { right: 0; }
+            /* Left zone: full left 40%, stop above weapon bar */
+            .left-zone {
+                left: 0;
+                bottom: 80px;
+            }
+            /* Right zone: top-right area, stops before buttons */
+            .right-zone {
+                right: 0;
+                bottom: 200px;
+            }
 
             .joystick-base {
                 position: absolute;
@@ -116,44 +143,60 @@ export class TouchControls {
                 pointer-events: none;
             }
 
+            /* Buttons: 2x2 grid, bottom-right, above weapon bar */
             .touch-buttons {
                 position: absolute;
-                right: 8px;
-                bottom: 8px;
+                right: 10px;
+                bottom: 80px;
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
                 pointer-events: auto;
                 touch-action: none;
+                z-index: 1001;
+            }
+            .btn-row {
+                display: flex;
+                gap: 8px;
             }
             .touch-btn {
-                width: 64px;
-                height: 48px;
-                border-radius: 12px;
+                width: 72px;
+                height: 52px;
+                border-radius: 14px;
                 border: 2px solid rgba(255,255,255,0.25);
                 background: rgba(255,255,255,0.1);
-                color: rgba(255,255,255,0.7);
-                font-size: 12px;
+                color: rgba(255,255,255,0.8);
+                font-size: 13px;
                 font-weight: bold;
                 font-family: "Segoe UI", Arial, sans-serif;
                 letter-spacing: 1px;
                 touch-action: none;
                 -webkit-tap-highlight-color: transparent;
                 user-select: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             .touch-btn:active, .touch-btn.pressed {
                 background: rgba(255,255,255,0.3);
                 border-color: rgba(255,255,255,0.5);
             }
             .fire-btn {
-                width: 80px;
-                height: 64px;
-                font-size: 14px;
-                background: rgba(255,60,60,0.2);
-                border-color: rgba(255,60,60,0.4);
+                width: 72px;
+                height: 52px;
+                font-size: 15px;
+                background: rgba(255,60,60,0.25);
+                border-color: rgba(255,60,60,0.5);
             }
             .fire-btn:active, .fire-btn.pressed {
-                background: rgba(255,60,60,0.5);
+                background: rgba(255,60,60,0.6);
+            }
+            .jump-btn {
+                background: rgba(60,255,60,0.15);
+                border-color: rgba(60,255,60,0.3);
+            }
+            .jump-btn:active, .jump-btn.pressed {
+                background: rgba(60,255,60,0.4);
             }
             .rope-btn {
                 background: rgba(60,180,255,0.15);
@@ -161,6 +204,23 @@ export class TouchControls {
             }
             .rope-btn:active, .rope-btn.pressed {
                 background: rgba(60,180,255,0.4);
+            }
+            .weapon-btn {
+                background: rgba(255,200,60,0.15);
+                border-color: rgba(255,200,60,0.3);
+            }
+            .weapon-btn:active, .weapon-btn.pressed {
+                background: rgba(255,200,60,0.4);
+            }
+
+            /* Small screens: smaller buttons */
+            @media (max-height: 400px) {
+                .touch-btn { width: 60px; height: 44px; font-size: 11px; }
+                .fire-btn { width: 60px; height: 44px; font-size: 13px; }
+                .touch-buttons { bottom: 70px; right: 6px; gap: 5px; }
+                .btn-row { gap: 5px; }
+                .joystick-base { width: 100px; height: 100px; }
+                .joystick-knob { width: 42px; height: 42px; }
             }
         `;
         document.head.appendChild(style);
@@ -222,8 +282,9 @@ export class TouchControls {
             this.aimTouch = t.identifier;
             this.aimOriginX = t.clientX;
             this.aimOriginY = t.clientY;
-            this.aimBase.style.left = (t.clientX - this.aimZone.getBoundingClientRect().left - 60) + 'px';
-            this.aimBase.style.top = (t.clientY - 60) + 'px';
+            const rect = this.aimZone.getBoundingClientRect();
+            this.aimBase.style.left = (t.clientX - rect.left - 60) + 'px';
+            this.aimBase.style.top = (t.clientY - rect.top - 60) + 'px';
             this.aimBase.classList.add('visible');
         }, { passive: false });
 
@@ -254,7 +315,7 @@ export class TouchControls {
         this.aimZone.addEventListener('touchend', aimEnd, { passive: false });
         this.aimZone.addEventListener('touchcancel', aimEnd, { passive: false });
 
-        // Buttons
+        // Buttons — stop propagation so joystick zones don't capture them
         this._bindButton('btn-fire', 'fireDown');
         this._bindButton('btn-jump', 'jumpDown');
 
@@ -262,12 +323,14 @@ export class TouchControls {
         const ropeBtn = document.getElementById('btn-rope');
         ropeBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             this.ropeDown = true;
             this.ropePressedThisFrame = true;
             ropeBtn.classList.add('pressed');
         }, { passive: false });
         ropeBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             this.ropeDown = false;
             ropeBtn.classList.remove('pressed');
         }, { passive: false });
@@ -280,12 +343,14 @@ export class TouchControls {
         const wpnBtn = document.getElementById('btn-weapon');
         wpnBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             this.weaponDown = true;
             this.weaponPressedThisFrame = true;
             wpnBtn.classList.add('pressed');
         }, { passive: false });
         wpnBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             this.weaponDown = false;
             wpnBtn.classList.remove('pressed');
         }, { passive: false });
@@ -299,11 +364,13 @@ export class TouchControls {
         const btn = document.getElementById(id);
         btn.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             this[prop] = true;
             btn.classList.add('pressed');
         }, { passive: false });
         btn.addEventListener('touchend', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             this[prop] = false;
             btn.classList.remove('pressed');
         }, { passive: false });

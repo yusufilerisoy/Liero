@@ -29,13 +29,17 @@ html, body {
     html, body {
         width: 100vw;
         height: 100vh;
+        height: 100dvh;
     }
     #game {
         width: 100vw !important;
         height: 100vh !important;
+        height: 100dvh !important;
         border: none;
         border-radius: 0;
         box-shadow: none;
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
     }
 }
 
