@@ -24,18 +24,39 @@ html, body {
     object-fit: contain;
 }
 
-/* Mobile — fill entire screen */
-@media (pointer: coarse) {
-    html, body {
-        width: 100vw;
-        height: 100dvh;
-    }
+/* Mobile landscape — fill screen */
+@media (pointer: coarse) and (orientation: landscape) {
     #game {
         width: 100vw !important;
         height: 100dvh !important;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
+        border: none; border-radius: 0; box-shadow: none;
+    }
+}
+
+/* Mobile portrait — rotate canvas to landscape */
+@media (pointer: coarse) and (orientation: portrait) {
+    #game {
+        transform: rotate(90deg);
+        transform-origin: center center;
+        width: 100dvh !important;
+        height: 100vw !important;
+        max-width: none;
+        max-height: none;
+        position: absolute;
+        top: 50%; left: 50%;
+        margin-left: -50dvh;
+        margin-top: -50vw;
+        border: none; border-radius: 0; box-shadow: none;
+    }
+    #touch-controls {
+        transform: rotate(90deg);
+        transform-origin: center center;
+        width: 100dvh !important;
+        height: 100vw !important;
+        position: fixed;
+        top: 50%; left: 50%;
+        margin-left: -50dvh;
+        margin-top: -50vw;
     }
 }
 
@@ -44,7 +65,7 @@ html, body {
     #game {
         border: 1px solid #222;
         border-radius: 4px;
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 40px rgba(0,0,0,0.8);
     }
 }
 

@@ -521,6 +521,12 @@ export class Game {
             this.pauseIndex = 0;
             return;
         }
+        // Touch EXIT button → go to menu
+        if (this.touch && this.touch.active && this.touch.exitDown) {
+            this.state = GAME_STATE.MENU;
+            if (this.mode === 'lan') this.network.disconnect();
+            return;
+        }
 
         // Time limit
         if (this.timeLeft !== null) {
