@@ -6,7 +6,7 @@
     "scope": "./",
     "id": "liero-web",
     "display": "fullscreen",
-    "orientation": "landscape",
+    "orientation": "landscape-primary",
     "background_color": "#0a0a0a",
     "theme_color": "#1a0a2e",
     "categories": ["games"],

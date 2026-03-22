@@ -20,10 +20,19 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
         }
-        // Lock to landscape
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape').catch(() => {});
+        // Lock to landscape — works in PWA/fullscreen mode
+        function lockLandscape() {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape-primary').catch(() => {
+                    // Fallback: try 'landscape'
+                    screen.orientation.lock('landscape').catch(() => {});
+                });
+            }
         }
+        lockLandscape();
+        // Re-attempt lock on fullscreen change (needed for some browsers)
+        document.addEventListener('fullscreenchange', lockLandscape);
+        document.addEventListener('webkitfullscreenchange', lockLandscape);
     </script>
 </body>
 </html>
