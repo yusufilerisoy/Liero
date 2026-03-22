@@ -1,4 +1,4 @@
-// bot.js — Relentless AI that hunts and kills the player
+// bot.js — AI that hunts and kills the player, scaled by difficulty
 
 import { WEAPONS, DIFFICULTY, PLAYER_RADIUS } from './config.js';
 import { distance, angleBetween, normalizeAngle, randRange } from './utils.js';
@@ -25,6 +25,8 @@ export class Bot {
         this.wantRope = false;
         this.wantChangeWeapon = false;
         this.aimTarget = 0;
+        this.reactionTimer = 0; // delay before reacting to target
+        this.targetSeen = false;
 
         this.input = {
             left: false, right: false, up: false, down: false,
@@ -44,7 +46,7 @@ export class Bot {
         this.target = this._findTarget(players);
         if (!this.target) { this._clearInput(); return this.input; }
 
-        // Stuck detection — react fast
+        // Stuck detection
         if (Math.abs(p.x - this.lastX) < 1 && Math.abs(p.y - this.lastY) < 1) {
             this.stuckTimer += dt;
         } else {
@@ -56,24 +58,52 @@ export class Bot {
         const dist = distance(p.x, p.y, this.target.x, this.target.y);
         const hasLOS = this._hasLineOfSight(physics);
 
-        // Always aim at target
-        this.aimTarget = angleBetween(p.x, p.y, this.target.x, this.target.y)
-            + randRange(-this.diff.aimError, this.diff.aimError);
-
-        // Always try to fire when we have LOS
+        // Reaction time — bot needs time to "see" the target
         if (hasLOS) {
+            if (!this.targetSeen) {
+                this.reactionTimer += dt;
+                if (this.reactionTimer >= this.diff.reactionTime) {
+                    this.targetSeen = true;
+                }
+            }
+        } else {
+            this.targetSeen = false;
+            this.reactionTimer = 0;
+        }
+
+        // Aim at target with error based on difficulty
+        const baseAngle = angleBetween(p.x, p.y, this.target.x, this.target.y);
+
+        // Hard mode: lead target (predict movement)
+        let leadAngle = baseAngle;
+        if (this.diff.leadTarget && this.target.vx !== undefined) {
+            const bulletSpeed = WEAPONS[p.weaponIndex].speed || 700;
+            const travelTime = dist / bulletSpeed;
+            const predictX = this.target.x + this.target.vx * travelTime;
+            const predictY = this.target.y + this.target.vy * travelTime * 0.5;
+            leadAngle = angleBetween(p.x, p.y, predictX, predictY);
+        }
+
+        this.aimTarget = leadAngle + randRange(-this.diff.aimError, this.diff.aimError);
+
+        // Fire only if target is "seen" (reaction time passed) and RNG check
+        if (this.targetSeen && hasLOS && Math.random() < this.diff.fireChance) {
             this.wantFire = true;
-            this._selectWeapon(dist);
+            if (this.diff.weaponSkill) this._selectWeapon(dist);
             this.state = STATE.ATTACK;
         }
 
         // Stuck? dig or rope
         if (this.stuckTimer > 0.8) {
             const dy = this.target.y - p.y;
-            if (dy < -40 && !p.rope) {
+            if (dy < -40 && !p.rope && this.diff.ropeSkill) {
                 this.state = STATE.ROPE;
-            } else {
+            } else if (Math.random() < this.diff.digFrequency) {
                 this.state = STATE.DIG;
+            } else {
+                // Easy bots just wander when stuck
+                this.moveDir = Math.random() < 0.5 ? -1 : 1;
+                this.state = STATE.HUNT;
             }
             this.stuckTimer = 0;
             this.stateTimer = 0;
@@ -126,46 +156,51 @@ export class Bot {
         const dx = this.target.x - p.x;
         const dy = this.target.y - p.y;
 
-        // Chase but keep distance if too close
-        if (dist < 80) {
-            this.moveDir = dx > 0 ? -1 : 1;
+        // Chase/retreat based on difficulty distance settings
+        if (dist < this.diff.retreatDistance) {
+            this.moveDir = dx > 0 ? -1 : 1; // retreat
         } else {
-            this.moveDir = dx > 0 ? 1 : -1;
+            this.moveDir = dx > 0 ? 1 : -1; // chase
         }
 
-        // Jump constantly to climb terrain
+        // Jump to climb terrain
         if (p.grounded) {
             this.input.jump = true;
         }
 
-        // Target above? rope
-        if (dy < -60 && !p.rope && dist > 60) {
+        // Target above? rope (if skilled enough)
+        if (dy < -60 && !p.rope && dist > 60 && this.diff.ropeSkill) {
             this.state = STATE.ROPE;
             this.stateTimer = 0;
             return;
         }
 
-        // Fire toward target even while hunting — dig through terrain
-        this.wantFire = true;
-        this._selectWeapon(dist);
+        // Fire toward target while hunting (dig through terrain)
+        if (Math.random() < this.diff.digFrequency) {
+            this.wantFire = true;
+            if (this.diff.weaponSkill) this._selectWeapon(dist);
+        }
     }
 
     _attack(dt, physics, dist) {
         const p = this.player;
         const dx = this.target.x - p.x;
 
-        // Keep fighting distance — back off if too close, chase if far
-        if (dist < 80) {
+        // Keep fighting distance based on difficulty
+        if (dist < this.diff.retreatDistance) {
             this.moveDir = dx > 0 ? -1 : 1; // retreat
-        } else {
+        } else if (dist > this.diff.chaseDistance) {
             this.moveDir = dx > 0 ? 1 : -1; // chase
+        } else {
+            // Strafe randomly at optimal range
+            if (Math.random() < 0.02) this.moveDir = Math.random() < 0.5 ? -1 : 1;
         }
 
-        this.wantFire = true;
-        this._selectWeapon(dist);
+        this.wantFire = Math.random() < this.diff.fireChance;
+        if (this.diff.weaponSkill) this._selectWeapon(dist);
 
-        // Jump while fighting
-        if (p.grounded && Math.random() < 0.05) {
+        // Jump/dodge based on difficulty
+        if (p.grounded && Math.random() < this.diff.jumpChance) {
             this.input.jump = true;
         }
     }
@@ -179,9 +214,11 @@ export class Bot {
         this.moveDir = this.target.x > p.x ? 1 : -1;
 
         // Use explosive weapons for digging
-        const curW = WEAPONS[p.weaponIndex];
-        if (curW.type === 'mine' || curW.type === 'beam') {
-            this.wantChangeWeapon = true;
+        if (this.diff.weaponSkill) {
+            const curW = WEAPONS[p.weaponIndex];
+            if (curW.type === 'mine' || curW.type === 'beam') {
+                this.wantChangeWeapon = true;
+            }
         }
 
         if (p.grounded) this.input.jump = true;
@@ -198,7 +235,6 @@ export class Bot {
 
         if (this.stateTimer < 0.1 && !p.rope) {
             this.wantRope = true;
-            // Aim rope toward target or upward
             const dy = this.target.y - p.y;
             if (dy < -50) {
                 this.aimTarget = angleBetween(p.x, p.y, this.target.x, this.target.y);
@@ -253,10 +289,12 @@ export class Bot {
         inp.left = this.moveDir < 0;
         inp.right = this.moveDir > 0;
 
+        // Aim speed scaled by difficulty
         const currentAngle = p.getActualAimAngle();
         const diff = normalizeAngle(this.aimTarget - currentAngle);
-        inp.aimUp = diff < -0.05;
-        inp.aimDown = diff > 0.05;
+        const aimThreshold = 0.05 / this.diff.aimSpeed;
+        inp.aimUp = diff < -aimThreshold;
+        inp.aimDown = diff > aimThreshold;
         inp.aimUpOnly = inp.aimUp;
         inp.aimDownOnly = inp.aimDown;
 

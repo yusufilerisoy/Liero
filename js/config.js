@@ -167,9 +167,43 @@ export const WEAPONS = [
 ];
 
 export const DIFFICULTY = {
-    easy: { aimError: 15 * Math.PI / 180, reactionDelay: 500 },
-    medium: { aimError: 8 * Math.PI / 180, reactionDelay: 200 },
-    hard: { aimError: 3 * Math.PI / 180, reactionDelay: 50 },
+    easy: {
+        aimError: 20 * Math.PI / 180,   // wide aim spread
+        reactionTime: 0.6,               // slow to react (seconds)
+        fireChance: 0.3,                 // fires 30% of the time when has LOS
+        chaseDistance: 200,              // keeps far distance
+        retreatDistance: 60,             // retreats only when very close
+        jumpChance: 0.01,               // rarely jumps in combat
+        weaponSkill: false,             // doesn't pick optimal weapons
+        digFrequency: 0.3,             // rarely digs toward player
+        ropeSkill: false,              // doesn't use rope well
+        aimSpeed: 0.4,                 // slow aim adjustment
+    },
+    medium: {
+        aimError: 8 * Math.PI / 180,
+        reactionTime: 0.25,
+        fireChance: 0.7,
+        chaseDistance: 150,
+        retreatDistance: 80,
+        jumpChance: 0.05,
+        weaponSkill: true,
+        digFrequency: 0.6,
+        ropeSkill: true,
+        aimSpeed: 0.7,
+    },
+    hard: {
+        aimError: 2 * Math.PI / 180,    // near-perfect aim
+        reactionTime: 0.05,              // instant reaction
+        fireChance: 1.0,                 // always fires when possible
+        chaseDistance: 120,              // aggressive chase
+        retreatDistance: 50,
+        jumpChance: 0.15,               // jumps frequently to dodge
+        weaponSkill: true,              // optimal weapon selection
+        digFrequency: 0.9,             // aggressively digs to player
+        ropeSkill: true,
+        aimSpeed: 1.0,                 // fastest aim tracking
+        leadTarget: true,              // predicts player movement
+    },
 };
 
 export const NET_TICK_RATE = 20; // Hz for network updates
