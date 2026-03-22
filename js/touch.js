@@ -43,14 +43,12 @@ export class TouchControls {
     }
 
     _bindFullscreen() {
-        // Request fullscreen on first touch interaction
         const requestFS = () => {
             const el = document.documentElement;
             const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
             if (req) {
                 req.call(el).catch(() => {});
             }
-            // Also try to hide mobile browser UI via scrolling trick
             window.scrollTo(0, 1);
             document.removeEventListener('touchstart', requestFS);
         };
@@ -58,9 +56,9 @@ export class TouchControls {
     }
 
     _createUI() {
-        // Container
         this.container = document.createElement('div');
         this.container.id = 'touch-controls';
+        // Layout: left joystick | aim joystick (center-right) | buttons (far right, vertical)
         this.container.innerHTML = `
             <div class="joystick-zone left-zone" id="move-zone">
                 <div class="joystick-base" id="move-base">
@@ -73,19 +71,14 @@ export class TouchControls {
                 </div>
             </div>
             <div class="touch-buttons" id="touch-buttons">
-                <div class="btn-row">
-                    <button class="touch-btn fire-btn" id="btn-fire">FIRE</button>
-                    <button class="touch-btn jump-btn" id="btn-jump">JUMP</button>
-                </div>
-                <div class="btn-row">
-                    <button class="touch-btn weapon-btn" id="btn-weapon">WPN</button>
-                    <button class="touch-btn rope-btn" id="btn-rope">ROPE</button>
-                </div>
+                <button class="touch-btn fire-btn" id="btn-fire">FIRE</button>
+                <button class="touch-btn weapon-btn" id="btn-weapon">WPN</button>
+                <button class="touch-btn jump-btn" id="btn-jump">JUMP</button>
+                <button class="touch-btn rope-btn" id="btn-rope">ROPE</button>
             </div>
         `;
         document.body.appendChild(this.container);
 
-        // Inject CSS
         const style = document.createElement('style');
         style.textContent = `
             #touch-controls {
@@ -100,22 +93,23 @@ export class TouchControls {
                 #game { cursor: default; }
             }
 
+            /* Left joystick: left 35% of screen */
             .joystick-zone {
                 position: absolute;
                 top: 0;
-                width: 40%;
                 pointer-events: auto;
                 touch-action: none;
             }
-            /* Left zone: full left 40%, stop above weapon bar */
             .left-zone {
                 left: 0;
-                bottom: 80px;
+                width: 35%;
+                bottom: 72px;
             }
-            /* Right zone: top-right area, stops before buttons */
+            /* Right joystick: center area, between left zone and buttons */
             .right-zone {
-                right: 0;
-                bottom: 200px;
+                left: 35%;
+                width: 40%;
+                bottom: 72px;
             }
 
             .joystick-base {
@@ -143,25 +137,22 @@ export class TouchControls {
                 pointer-events: none;
             }
 
-            /* Buttons: 2x2 grid, bottom-right, above weapon bar */
+            /* Buttons: vertical column, far right, centered vertically */
             .touch-buttons {
                 position: absolute;
-                right: 10px;
-                bottom: 80px;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
                 display: flex;
                 flex-direction: column;
-                gap: 8px;
+                gap: 10px;
                 pointer-events: auto;
                 touch-action: none;
                 z-index: 1001;
             }
-            .btn-row {
-                display: flex;
-                gap: 8px;
-            }
             .touch-btn {
-                width: 72px;
-                height: 52px;
+                width: 68px;
+                height: 48px;
                 border-radius: 14px;
                 border: 2px solid rgba(255,255,255,0.25);
                 background: rgba(255,255,255,0.1);
@@ -182,8 +173,7 @@ export class TouchControls {
                 border-color: rgba(255,255,255,0.5);
             }
             .fire-btn {
-                width: 72px;
-                height: 52px;
+                height: 56px;
                 font-size: 15px;
                 background: rgba(255,60,60,0.25);
                 border-color: rgba(255,60,60,0.5);
@@ -213,12 +203,11 @@ export class TouchControls {
                 background: rgba(255,200,60,0.4);
             }
 
-            /* Small screens: smaller buttons */
+            /* Small screens */
             @media (max-height: 400px) {
-                .touch-btn { width: 60px; height: 44px; font-size: 11px; }
-                .fire-btn { width: 60px; height: 44px; font-size: 13px; }
-                .touch-buttons { bottom: 70px; right: 6px; gap: 5px; }
-                .btn-row { gap: 5px; }
+                .touch-btn { width: 56px; height: 40px; font-size: 11px; }
+                .fire-btn { height: 46px; font-size: 12px; }
+                .touch-buttons { gap: 6px; right: 4px; }
                 .joystick-base { width: 100px; height: 100px; }
                 .joystick-knob { width: 42px; height: 42px; }
             }
@@ -389,7 +378,6 @@ export class TouchControls {
         const ay = Math.abs(this.aimY) > deadzone ? this.aimY : 0;
 
         if (ropeAttached) {
-            // Rope mode: left stick = reel up/down, right stick = swing left/right
             return {
                 left: ax < -deadzone,
                 right: ax > deadzone,
@@ -436,7 +424,6 @@ export class TouchControls {
 
     clearPressed() {
         this.weaponPressedThisFrame = false;
-        // ropePressedThisFrame is consumed by wasRopePressed
     }
 
     setGameplay(on) {
