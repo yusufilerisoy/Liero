@@ -95,7 +95,9 @@ export class Renderer {
             if (this.spritesLoaded) {
                 const spriteKey = p.id === 0 ? 'wormRed' : 'wormGreen';
                 const region = SPRITES[spriteKey];
-                if (p.facing > 0) {
+                // wormRed natively faces right, wormGreen natively faces left
+                const needsFlip = spriteKey === 'wormRed' ? (p.facing < 0) : (p.facing > 0);
+                if (needsFlip) {
                     this.sprites.drawFlipped(this.ctx, region, sx, sy - 4, WORM_SIZE, WORM_SIZE);
                 } else {
                     this.sprites.drawCentered(this.ctx, region, sx, sy - 4, WORM_SIZE, WORM_SIZE);
