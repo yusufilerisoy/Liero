@@ -48,23 +48,47 @@ export class UI {
             'Settings',
         ];
 
+        const menuItemH = 56;
+        const menuGap = 16;
+        const menuSpacing = menuItemH + menuGap;
+        const menuStartY = 300;
+
         ctx.font = '28px "Segoe UI", Arial, sans-serif';
         for (let i = 0; i < items.length; i++) {
-            const y = 320 + i * 60;
+            const boxY = menuStartY + i * menuSpacing;
+            const textY = boxY + menuItemH / 2 + 10;
+
             if (i === selected) {
-                // Highlight background
-                ctx.fillStyle = 'rgba(255,255,0,0.08)';
+                // Selected highlight with border
+                ctx.fillStyle = 'rgba(255,255,0,0.1)';
                 ctx.beginPath();
-                ctx.roundRect(VIEWPORT_W / 2 - 220, y - 30, 440, 48, 8);
+                ctx.roundRect(VIEWPORT_W / 2 - 230, boxY, 460, menuItemH, 10);
                 ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,0,0.4)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 230, boxY, 460, menuItemH, 10);
+                ctx.stroke();
+                ctx.lineWidth = 1;
 
                 ctx.fillStyle = COLORS.menuHighlight;
                 ctx.font = 'bold 30px "Segoe UI", Arial, sans-serif';
-                ctx.fillText('> ' + items[i] + ' <', VIEWPORT_W / 2, y);
+                ctx.fillText('> ' + items[i] + ' <', VIEWPORT_W / 2, textY);
                 ctx.font = '28px "Segoe UI", Arial, sans-serif';
             } else {
+                // Unselected with subtle border
+                ctx.fillStyle = 'rgba(255,255,255,0.03)';
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 230, boxY, 460, menuItemH, 10);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 230, boxY, 460, menuItemH, 10);
+                ctx.stroke();
+
                 ctx.fillStyle = COLORS.menu;
-                ctx.fillText(items[i], VIEWPORT_W / 2, y);
+                ctx.fillText(items[i], VIEWPORT_W / 2, textY);
             }
         }
 
@@ -73,8 +97,13 @@ export class UI {
         ctx.fillStyle = '#555555';
         ctx.fillText('Arrow Keys / Enter to select', VIEWPORT_W / 2, VIEWPORT_H - 70);
         ctx.font = '14px "Segoe UI", Arial, sans-serif';
-        ctx.fillText('Arrows move + Q/E aim + Space fire + R weapon + F rope', VIEWPORT_W / 2, VIEWPORT_H - 40);
+        ctx.fillText('P1: WASD + Q/E aim + LCtrl fire + R weapon + F rope', VIEWPORT_W / 2, VIEWPORT_H - 40);
         ctx.textAlign = 'left';
+
+        // Store menu layout constants for hit testing
+        this._menuStartY = menuStartY;
+        this._menuItemH = menuItemH;
+        this._menuSpacing = menuSpacing;
     }
 
     drawSettings(settings, selected) {

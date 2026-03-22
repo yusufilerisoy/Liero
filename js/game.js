@@ -64,6 +64,7 @@ export class Game {
 
         // Click/touch handler for canvas
         this._menuClicked = -1; // index of clicked menu item
+        this._isTouchDevice = false;
         const handleCanvasClick = (clientX, clientY) => {
             const rect = this.canvas.getBoundingClientRect();
             const scaleX = this.canvas.width / rect.width;
@@ -79,11 +80,15 @@ export class Game {
                     this.audio.menuSelect();
                 }
             } else if (this.state === GAME_STATE.MENU) {
-                // Menu items: y=320, 60px apart, 4 items, centered width 440
-                const menuX = VIEWPORT_W / 2 - 220;
+                // Menu items: 56px tall, 16px gap, starting at y=300
+                const menuItemH = 56;
+                const menuGap = 16;
+                const menuSpacing = menuItemH + menuGap;
+                const menuStartY = 300;
+                const menuX = VIEWPORT_W / 2 - 230;
                 for (let i = 0; i < 4; i++) {
-                    const itemY = 320 + i * 60 - 30;
-                    if (cx >= menuX && cx <= menuX + 440 && cy >= itemY && cy <= itemY + 48) {
+                    const itemY = menuStartY + i * menuSpacing;
+                    if (cx >= menuX && cx <= menuX + 460 && cy >= itemY && cy <= itemY + menuItemH) {
                         this._menuClicked = i;
                         break;
                     }
@@ -92,8 +97,12 @@ export class Game {
                 this._menuClicked = 99; // any tap continues
             }
         };
-        this.canvas.addEventListener('click', (e) => handleCanvasClick(e.clientX, e.clientY));
+        // Use only touchstart on touch devices to prevent double-fire
+        this.canvas.addEventListener('click', (e) => {
+            if (!this._isTouchDevice) handleCanvasClick(e.clientX, e.clientY);
+        });
         this.canvas.addEventListener('touchstart', (e) => {
+            this._isTouchDevice = true;
             if (e.touches.length > 0) {
                 handleCanvasClick(e.touches[0].clientX, e.touches[0].clientY);
             }
