@@ -263,4 +263,140 @@ export class UI {
         ctx.fillText('Press Enter to return to menu', VIEWPORT_W / 2, VIEWPORT_H - 80);
         ctx.textAlign = 'left';
     }
+
+    drawDiffSelect(selected) {
+        const ctx = this.ctx;
+
+        // Background
+        ctx.fillStyle = COLORS.menuBg;
+        ctx.fillRect(0, 0, VIEWPORT_W, VIEWPORT_H);
+
+        // Title
+        ctx.fillStyle = COLORS.menu;
+        ctx.font = 'bold 42px "Segoe UI", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('SELECT DIFFICULTY', VIEWPORT_W / 2, 160);
+
+        // Menu items
+        const items = ['Easy', 'Medium', 'Hard', 'Back'];
+        const descriptions = {
+            'Easy': '(Slow bot, bad aim)',
+            'Medium': '(Balanced)',
+            'Hard': '(Fast, deadly accurate)',
+        };
+
+        const menuItemH = 56;
+        const menuGap = 16;
+        const menuSpacing = menuItemH + menuGap;
+        const menuStartY = 280;
+
+        for (let i = 0; i < items.length; i++) {
+            const boxY = menuStartY + i * menuSpacing;
+            const textY = boxY + menuItemH / 2 + 10;
+
+            if (i === selected) {
+                // Selected highlight with yellow border
+                ctx.fillStyle = 'rgba(255,255,0,0.1)';
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 230, boxY, 460, menuItemH, 10);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,0,0.4)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 230, boxY, 460, menuItemH, 10);
+                ctx.stroke();
+                ctx.lineWidth = 1;
+
+                ctx.fillStyle = COLORS.menuHighlight;
+                ctx.font = 'bold 30px "Segoe UI", Arial, sans-serif';
+                ctx.fillText('> ' + items[i] + ' <', VIEWPORT_W / 2, textY);
+
+                // Description below selected item
+                if (descriptions[items[i]]) {
+                    ctx.font = '18px "Segoe UI", Arial, sans-serif';
+                    ctx.fillStyle = '#888888';
+                    ctx.fillText(descriptions[items[i]], VIEWPORT_W / 2, boxY + menuItemH / 2 + 24);
+                }
+            } else {
+                // Unselected with subtle border
+                ctx.fillStyle = 'rgba(255,255,255,0.03)';
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 230, boxY, 460, menuItemH, 10);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 230, boxY, 460, menuItemH, 10);
+                ctx.stroke();
+
+                ctx.fillStyle = COLORS.menu;
+                ctx.font = '28px "Segoe UI", Arial, sans-serif';
+                ctx.fillText(items[i], VIEWPORT_W / 2, textY);
+            }
+        }
+
+        ctx.textAlign = 'left';
+    }
+
+    drawPause(selected) {
+        const ctx = this.ctx;
+
+        // Semi-transparent overlay
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, VIEWPORT_W, VIEWPORT_H);
+
+        // Title
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 48px "Segoe UI", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUSED', VIEWPORT_W / 2, VIEWPORT_H / 2 - 80);
+
+        // Menu items
+        const items = ['Resume', 'Quit to Menu'];
+        const boxYPositions = [VIEWPORT_H / 2 - 20, VIEWPORT_H / 2 + 52];
+
+        for (let i = 0; i < items.length; i++) {
+            const boxY = boxYPositions[i];
+            const textY = boxY + 56 / 2 + 9;
+
+            if (i === selected) {
+                // Selected with green highlight
+                ctx.fillStyle = 'rgba(0,255,0,0.1)';
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 150, boxY, 300, 56, 10);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(0,255,0,0.4)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 150, boxY, 300, 56, 10);
+                ctx.stroke();
+                ctx.lineWidth = 1;
+
+                ctx.fillStyle = COLORS.menu;
+                ctx.font = 'bold 26px "Segoe UI", Arial, sans-serif';
+                ctx.fillText('> ' + items[i] + ' <', VIEWPORT_W / 2, textY);
+            } else {
+                // Unselected with subtle border
+                ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 150, boxY, 300, 56, 10);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.roundRect(VIEWPORT_W / 2 - 150, boxY, 300, 56, 10);
+                ctx.stroke();
+
+                ctx.fillStyle = '#888888';
+                ctx.font = '24px "Segoe UI", Arial, sans-serif';
+                ctx.fillText(items[i], VIEWPORT_W / 2, textY);
+            }
+        }
+
+        // Bottom hint
+        ctx.font = '16px "Segoe UI", Arial, sans-serif';
+        ctx.fillStyle = '#555555';
+        ctx.fillText('ESC to resume', VIEWPORT_W / 2, VIEWPORT_H / 2 + 130);
+        ctx.textAlign = 'left';
+    }
 }

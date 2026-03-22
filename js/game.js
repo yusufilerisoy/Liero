@@ -11,13 +11,15 @@ import { Bot } from './bot.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
 import { NetworkClient } from './network.js';
-import { RESPAWN_TIME, WEAPONS, VIEWPORT_SCALE, VIEWPORT_W, PLAYER_RADIUS } from './config.js';
+import { RESPAWN_TIME, WEAPONS, VIEWPORT_SCALE, VIEWPORT_W, VIEWPORT_H, PLAYER_RADIUS } from './config.js';
 
 export const GAME_STATE = {
     MENU: 'menu',
     SETTINGS: 'settings',
     LAN_MENU: 'lan_menu',
+    DIFF_SELECT: 'diff_select',
     PLAYING: 'playing',
+    PAUSED: 'paused',
     ROUND_END: 'round_end',
     GAME_OVER: 'game_over',
 };
@@ -48,6 +50,8 @@ export class Game {
         // Menu state
         this.menuIndex = 0;
         this.settingsIndex = 0;
+        this.diffIndex = 1; // default to medium
+        this.pauseIndex = 0;
         this.lanState = 'idle';
 
         // Settings
@@ -93,6 +97,31 @@ export class Game {
                         break;
                     }
                 }
+            } else if (this.state === GAME_STATE.DIFF_SELECT) {
+                // Difficulty items: 4 items (Easy, Medium, Hard, Back), 56px tall, 16px gap, starting at y=280
+                const diffItemH = 56;
+                const diffSpacing = 72; // 56 + 16
+                const diffStartY = 280;
+                const diffX = VIEWPORT_W / 2 - 230;
+                for (let i = 0; i < 4; i++) {
+                    const itemY = diffStartY + i * diffSpacing;
+                    if (cx >= diffX && cx <= diffX + 460 && cy >= itemY && cy <= itemY + diffItemH) {
+                        this._menuClicked = i;
+                        break;
+                    }
+                }
+            } else if (this.state === GAME_STATE.PAUSED) {
+                // Pause items: Resume and Quit to Menu, centered on screen
+                const pauseW = 300;
+                const pauseX = VIEWPORT_W / 2 - pauseW / 2;
+                const pauseItemH = 56;
+                const resumeY = VIEWPORT_H / 2 - 20;
+                const quitY = VIEWPORT_H / 2 + 40;
+                if (cx >= pauseX && cx <= pauseX + pauseW && cy >= resumeY && cy <= resumeY + pauseItemH) {
+                    this._menuClicked = 0; // Resume
+                } else if (cx >= pauseX && cx <= pauseX + pauseW && cy >= quitY && cy <= quitY + pauseItemH) {
+                    this._menuClicked = 1; // Quit to Menu
+                }
             } else if (this.state === GAME_STATE.ROUND_END || this.state === GAME_STATE.GAME_OVER) {
                 this._menuClicked = 99; // any tap continues
             }
@@ -134,9 +163,9 @@ export class Game {
     }
 
     update(dt) {
-        // Show touch controls only during gameplay
+        // Show touch controls during gameplay and paused states
         if (this.touch && this.touch.active) {
-            this.touch.setGameplay(this.state === GAME_STATE.PLAYING);
+            this.touch.setGameplay(this.state === GAME_STATE.PLAYING || this.state === GAME_STATE.PAUSED);
         }
 
         switch (this.state) {
@@ -149,8 +178,14 @@ export class Game {
             case GAME_STATE.LAN_MENU:
                 this._updateLANMenu(dt);
                 break;
+            case GAME_STATE.DIFF_SELECT:
+                this._updateDiffSelect(dt);
+                break;
             case GAME_STATE.PLAYING:
                 this._updatePlaying(dt);
+                break;
+            case GAME_STATE.PAUSED:
+                this._updatePaused(dt);
                 break;
             case GAME_STATE.ROUND_END:
                 this._updateRoundEnd(dt);
@@ -175,8 +210,15 @@ export class Game {
             case GAME_STATE.LAN_MENU:
                 this.ui.drawLANMenu(this.lanState, 'localhost', 3000);
                 break;
+            case GAME_STATE.DIFF_SELECT:
+                this.ui.drawDiffSelect(this.diffIndex);
+                break;
             case GAME_STATE.PLAYING:
                 this._drawPlaying();
+                break;
+            case GAME_STATE.PAUSED:
+                this._drawPlaying();
+                this.ui.drawPause(this.pauseIndex);
                 break;
             case GAME_STATE.ROUND_END:
                 this._drawPlaying();
@@ -219,7 +261,7 @@ export class Game {
 
     _selectMenuItem() {
         switch (this.menuIndex) {
-            case 0: this._startGame('single'); break;
+            case 0: this.state = GAME_STATE.DIFF_SELECT; this.diffIndex = 1; break;
             case 1: this._startGame('local'); break;
             case 2: this.state = GAME_STATE.LAN_MENU; break;
             case 3: this.state = GAME_STATE.SETTINGS; this.settingsIndex = 0; break;
@@ -305,6 +347,101 @@ export class Game {
         }
     }
 
+    // --- Difficulty Select ---
+    _updateDiffSelect(dt) {
+        const items = 4; // Easy, Medium, Hard, Back
+
+        if (this._justPressed('ArrowUp')) {
+            this.diffIndex = (this.diffIndex - 1 + items) % items;
+            this.audio.menuSelect();
+        }
+        if (this._justPressed('ArrowDown')) {
+            this.diffIndex = (this.diffIndex + 1) % items;
+            this.audio.menuSelect();
+        }
+
+        // Direct click/tap on item
+        if (this._menuClicked >= 0 && this._menuClicked < items) {
+            this.diffIndex = this._menuClicked;
+            this._menuClicked = -1;
+            this.audio.menuConfirm();
+            this.audio.resume();
+            this._selectDiffItem();
+            return;
+        }
+        this._menuClicked = -1;
+
+        if (this._justPressed('Enter') || this._justPressed('Space') || this._touchTapped()) {
+            this.audio.menuConfirm();
+            this.audio.resume();
+            this._selectDiffItem();
+            return;
+        }
+
+        if (this._justPressed('Escape')) {
+            this.state = GAME_STATE.MENU;
+        }
+    }
+
+    _selectDiffItem() {
+        const diffs = ['easy', 'medium', 'hard'];
+        if (this.diffIndex < 3) {
+            this.settings.difficulty = diffs[this.diffIndex];
+            this._startGame('single');
+        } else {
+            // Back
+            this.state = GAME_STATE.MENU;
+        }
+    }
+
+    // --- Paused ---
+    _updatePaused(dt) {
+        const items = 2; // Resume, Quit to Menu
+
+        if (this._justPressed('ArrowUp')) {
+            this.pauseIndex = (this.pauseIndex - 1 + items) % items;
+            this.audio.menuSelect();
+        }
+        if (this._justPressed('ArrowDown')) {
+            this.pauseIndex = (this.pauseIndex + 1) % items;
+            this.audio.menuSelect();
+        }
+
+        // Direct click/tap on item
+        if (this._menuClicked >= 0 && this._menuClicked < items) {
+            this.pauseIndex = this._menuClicked;
+            this._menuClicked = -1;
+            this.audio.menuConfirm();
+            this.audio.resume();
+            this._selectPauseItem();
+            return;
+        }
+        this._menuClicked = -1;
+
+        if (this._justPressed('Enter') || this._justPressed('Space') || this._touchTapped()) {
+            this.audio.menuConfirm();
+            this.audio.resume();
+            this._selectPauseItem();
+            return;
+        }
+
+        if (this._justPressed('Escape')) {
+            this.state = GAME_STATE.PLAYING;
+        }
+    }
+
+    _selectPauseItem() {
+        switch (this.pauseIndex) {
+            case 0: // Resume
+                this.state = GAME_STATE.PLAYING;
+                break;
+            case 1: // Quit to Menu
+                this.state = GAME_STATE.MENU;
+                if (this.mode === 'lan') this.network.disconnect();
+                break;
+        }
+    }
+
     // --- Start Game ---
     _startGame(mode) {
         this.mode = mode;
@@ -379,9 +516,9 @@ export class Game {
 
     // --- Playing ---
     _updatePlaying(dt) {
-        if (this._justPressed('Escape')) {
-            this.state = GAME_STATE.MENU;
-            if (this.mode === 'lan') this.network.disconnect();
+        if (this._justPressed('Escape') || (this.touch && this.touch.active && this.touch.pauseDown)) {
+            this.state = GAME_STATE.PAUSED;
+            this.pauseIndex = 0;
             return;
         }
 
