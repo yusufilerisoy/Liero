@@ -418,6 +418,58 @@ export class Renderer {
         this.sprites.drawCentered(this.ctx, SPRITES.heart, x - this.camX, y - this.camY, 24, 24);
     }
 
+    drawTouchButtons() {
+        const ctx = this.ctx;
+        const btnW = 56;
+        const fireH = 42;
+        const btnH = 36;
+        const gap = 8;
+        const x = VIEWPORT_W - btnW - 10;
+        const totalH = fireH + 3 * btnH + 3 * gap;
+        const startY = (VIEWPORT_H - 64 - totalH) / 2; // above weapon bar
+
+        const buttons = [
+            { label: 'FIRE', h: fireH, bg: 'rgba(255,40,40,0.2)', border: 'rgba(255,40,40,0.4)', color: 'rgba(255,140,140,0.8)' },
+            { label: 'WPN',  h: btnH,  bg: 'rgba(255,180,40,0.12)', border: 'rgba(255,180,40,0.25)', color: 'rgba(255,220,140,0.7)' },
+            { label: 'JUMP', h: btnH,  bg: 'rgba(40,200,40,0.12)', border: 'rgba(40,200,40,0.25)', color: 'rgba(140,255,140,0.7)' },
+            { label: 'ROPE', h: btnH,  bg: 'rgba(40,140,255,0.12)', border: 'rgba(40,140,255,0.25)', color: 'rgba(140,190,255,0.7)' },
+        ];
+
+        let y = startY;
+        ctx.textAlign = 'center';
+        for (const btn of buttons) {
+            ctx.fillStyle = btn.bg;
+            ctx.beginPath();
+            ctx.roundRect(x, y, btnW, btn.h, 8);
+            ctx.fill();
+            ctx.strokeStyle = btn.border;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(x, y, btnW, btn.h, 8);
+            ctx.stroke();
+            ctx.fillStyle = btn.color;
+            ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+            ctx.fillText(btn.label, x + btnW / 2, y + btn.h / 2 + 4);
+            y += btn.h + gap;
+        }
+
+        // EXIT button top-right
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.roundRect(VIEWPORT_W - 50, 4, 44, 24, 6);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(VIEWPORT_W - 50, 4, 44, 24, 6);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = 'bold 10px "Segoe UI", Arial, sans-serif';
+        ctx.fillText('EXIT', VIEWPORT_W - 28, 20);
+        ctx.textAlign = 'left';
+        ctx.lineWidth = 1;
+    }
+
     drawMessage(text, sub) {
         const ctx = this.ctx;
         ctx.fillStyle = 'rgba(0,0,0,0.75)';

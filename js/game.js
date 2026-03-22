@@ -830,6 +830,10 @@ export class Game {
         }
         // Minimap radar
         this.renderer.drawMinimap(this.players, this.terrain);
+        // Touch buttons (rendered on canvas so always inside game)
+        if (this.touch && this.touch.active) {
+            this.renderer.drawTouchButtons();
+        }
     }
 
     _getScores() {

@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#1a0a2e">
+    <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>Liero Web</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="assets/icons/icon-192.png">
@@ -18,30 +18,23 @@
     <script type="module" src="js/main.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(() => {});
+            navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function(){});
         }
-        // Aggressively lock to landscape
+        // Lock orientation - works in PWA fullscreen mode
         function lockLandscape() {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape-primary').catch(() => {
-                    screen.orientation.lock('landscape').catch(() => {
-                        screen.orientation.lock('any').catch(() => {});
-                    });
-                });
-            }
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(function(){});
+                }
+            } catch(e) {}
         }
         lockLandscape();
         document.addEventListener('fullscreenchange', lockLandscape);
         document.addEventListener('webkitfullscreenchange', lockLandscape);
-        // Also lock on first user interaction (needed for some mobile browsers)
-        document.addEventListener('touchstart', function onFirst() {
-            lockLandscape();
-            // Also request fullscreen which enables orientation lock
-            var el = document.documentElement;
-            var req = el.requestFullscreen || el.webkitRequestFullscreen;
-            if (req) req.call(el).then(lockLandscape).catch(function(){});
-            document.removeEventListener('touchstart', onFirst);
-        }, { once: true, passive: true });
+        // Prevent any scrolling/bouncing
+        document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+        document.addEventListener('scroll', function(e) { window.scrollTo(0,0); });
+        window.addEventListener('resize', function() { window.scrollTo(0,0); });
     </script>
 </body>
 </html>

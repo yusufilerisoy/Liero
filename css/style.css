@@ -9,60 +9,41 @@ html, body {
     height: 100%;
     overflow: hidden;
     background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     touch-action: none;
+    overscroll-behavior: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
 }
 
 #game {
     cursor: none;
     display: block;
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    object-fit: contain;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none; border-radius: 0; box-shadow: none;
 }
 
-/* Mobile landscape — fill screen */
-@media (pointer: coarse) and (orientation: landscape) {
-    #game {
-        width: 100vw !important;
-        height: 100dvh !important;
-        border: none; border-radius: 0; box-shadow: none;
-    }
-}
-
-/* Mobile portrait — rotate canvas to landscape */
-@media (pointer: coarse) and (orientation: portrait) {
-    #game {
-        transform: rotate(90deg);
-        transform-origin: center center;
-        width: 100dvh !important;
-        height: 100vw !important;
-        max-width: none;
-        max-height: none;
-        position: absolute;
-        top: 50%; left: 50%;
-        margin-left: -50dvh;
-        margin-top: -50vw;
-        border: none; border-radius: 0; box-shadow: none;
-    }
-    #touch-controls {
-        transform: rotate(90deg);
-        transform-origin: center center;
-        width: 100dvh !important;
-        height: 100vw !important;
-        position: fixed;
-        top: 50%; left: 50%;
-        margin-left: -50dvh;
-        margin-top: -50vw;
-    }
+#touch-controls {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
 }
 
 /* Desktop */
 @media (pointer: fine) {
+    html, body {
+        position: static;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
     #game {
+        position: static;
+        max-width: 100vw;
+        max-height: 100vh;
+        width: 100vw;
+        height: 100vh;
         border: 1px solid #222;
         border-radius: 4px;
         box-shadow: 0 0 40px rgba(0,0,0,0.8);
