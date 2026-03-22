@@ -115,12 +115,31 @@ export class Physics {
         return this.terrain.isSolid(x, y);
     }
 
-    // Check if a point hits a player (circle)
+    // Check if a point hits a player (circle with generous hitbox)
     checkPlayerHit(x, y, player) {
         if (player.dead || player.invulnerable) return false;
         const dx = x - player.x;
         const dy = y - player.y;
-        return (dx * dx + dy * dy) <= (PLAYER_RADIUS + 2) * (PLAYER_RADIUS + 2);
+        const hitR = PLAYER_RADIUS * 2.5; // generous hitbox for reliable hits
+        return (dx * dx + dy * dy) <= hitR * hitR;
+    }
+
+    // Swept collision: check if a moving projectile segment hits a player
+    checkPlayerHitSwept(x0, y0, x1, y1, player) {
+        if (player.dead || player.invulnerable) return false;
+        // Closest point on line segment (x0,y0)→(x1,y1) to player center
+        const dx = x1 - x0;
+        const dy = y1 - y0;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) return this.checkPlayerHit(x0, y0, player);
+        let t = ((player.x - x0) * dx + (player.y - y0) * dy) / lenSq;
+        t = clamp(t, 0, 1);
+        const closestX = x0 + t * dx;
+        const closestY = y0 + t * dy;
+        const cx = closestX - player.x;
+        const cy = closestY - player.y;
+        const hitR = PLAYER_RADIUS * 2.5;
+        return (cx * cx + cy * cy) <= hitR * hitR;
     }
 
     // Raycast through terrain, returns hit point or null

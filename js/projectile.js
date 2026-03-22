@@ -176,10 +176,13 @@ export class ProjectileSystem {
                 p.dead = true;
             }
 
-            // Player collision (not owner, not flame hitting owner briefly)
+            // Player collision — swept check for fast projectiles hitting airborne players
+            const prevX = p.x - p.vx * dt;
+            const prevY = p.y - p.vy * dt;
             for (const player of this._players) {
+                if (player.dead) continue;
                 if (player.id === p.ownerId && p.age < 0.1) continue;
-                if (this.physics.checkPlayerHit(p.x, p.y, player)) {
+                if (this.physics.checkPlayerHitSwept(prevX, prevY, p.x, p.y, player)) {
                     if (p.type === 'dirtball') {
                         this.terrain.addDirt(p.x, p.y, p.radius);
                     } else {
