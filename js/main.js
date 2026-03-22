@@ -33,4 +33,8 @@ function loop(now) {
     requestAnimationFrame(loop);
 }
 
-requestAnimationFrame(loop);
+// Wait for sprites to load before starting the game loop
+game.renderer.spritesReady.then(() => {
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+});

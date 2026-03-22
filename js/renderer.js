@@ -28,11 +28,11 @@ export class Renderer {
         // Sprite sheet
         this.sprites = new SpriteSheet();
         this.spritesLoaded = false;
-        this.sprites.load().then(() => { this.spritesLoaded = true; }).catch(() => {});
+        this.spritesReady = this.sprites.load().then(() => { this.spritesLoaded = true; }).catch(() => {});
     }
 
     shake(amount) {
-        this.shakeAmount = Math.max(this.shakeAmount, amount);
+        // Screen shake disabled
     }
 
     updateCamera(players, dt, followIndex = 0) {
@@ -58,13 +58,7 @@ export class Renderer {
         this.camX = lerp(this.camX, this.targetCamX, 1 - Math.pow(0.01, dt));
         this.camY = lerp(this.camY, this.targetCamY, 1 - Math.pow(0.01, dt));
 
-        if (this.shakeAmount > 0.1) {
-            this.camX += (Math.random() - 0.5) * this.shakeAmount;
-            this.camY += (Math.random() - 0.5) * this.shakeAmount;
-            this.shakeAmount *= Math.pow(0.001, dt);
-        } else {
-            this.shakeAmount = 0;
-        }
+        // Screen shake disabled
     }
 
     clear() {
@@ -420,10 +414,10 @@ export class Renderer {
 
     drawTouchButtons() {
         const ctx = this.ctx;
-        const btnW = 56;
-        const fireH = 42;
-        const btnH = 36;
-        const gap = 8;
+        const btnW = 72;
+        const fireH = 54;
+        const btnH = 46;
+        const gap = 10;
         const x = VIEWPORT_W - btnW - 10;
         const totalH = fireH + 3 * btnH + 3 * gap;
         const startY = (VIEWPORT_H - 64 - totalH) / 2; // above weapon bar
@@ -440,15 +434,17 @@ export class Renderer {
         for (const btn of buttons) {
             ctx.fillStyle = btn.bg;
             ctx.beginPath();
-            ctx.roundRect(x, y, btnW, btn.h, 8);
+            ctx.roundRect(x, y, btnW, btn.h, 10);
             ctx.fill();
             ctx.strokeStyle = btn.border;
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.roundRect(x, y, btnW, btn.h, 8);
+            ctx.roundRect(x, y, btnW, btn.h, 10);
             ctx.stroke();
             ctx.fillStyle = btn.color;
-            ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+            ctx.font = btn.label === 'FIRE'
+                ? 'bold 15px "Segoe UI", Arial, sans-serif'
+                : 'bold 13px "Segoe UI", Arial, sans-serif';
             ctx.fillText(btn.label, x + btnW / 2, y + btn.h / 2 + 4);
             y += btn.h + gap;
         }
@@ -456,16 +452,16 @@ export class Renderer {
         // EXIT button top-right
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.beginPath();
-        ctx.roundRect(VIEWPORT_W - 50, 4, 44, 24, 6);
+        ctx.roundRect(VIEWPORT_W - 58, 4, 52, 28, 6);
         ctx.fill();
         ctx.strokeStyle = 'rgba(255,255,255,0.15)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.roundRect(VIEWPORT_W - 50, 4, 44, 24, 6);
+        ctx.roundRect(VIEWPORT_W - 58, 4, 52, 28, 6);
         ctx.stroke();
         ctx.fillStyle = 'rgba(255,255,255,0.4)';
-        ctx.font = 'bold 10px "Segoe UI", Arial, sans-serif';
-        ctx.fillText('EXIT', VIEWPORT_W - 28, 20);
+        ctx.font = 'bold 11px "Segoe UI", Arial, sans-serif';
+        ctx.fillText('EXIT', VIEWPORT_W - 32, 22);
         ctx.textAlign = 'left';
         ctx.lineWidth = 1;
     }
