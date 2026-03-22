@@ -27,13 +27,9 @@ export class TouchControls {
         this.weaponDown = false;
         this.weaponPressedThisFrame = false;
         this.jumpDown = false;
-        this.pauseDown = false;
         this._tapped = false;
 
-        // Track active button touches
         this._buttonTouches = {};
-
-        // Gameplay mode
         this._gameplay = false;
     }
 
@@ -62,7 +58,6 @@ export class TouchControls {
     _createUI() {
         this.container = document.createElement('div');
         this.container.id = 'touch-controls';
-        // All visual elements are just indicators — input handled by global handler
         this.container.innerHTML = `
             <div class="joystick-base" id="move-base">
                 <div class="joystick-knob" id="move-knob"></div>
@@ -70,8 +65,7 @@ export class TouchControls {
             <div class="joystick-base" id="aim-base">
                 <div class="joystick-knob" id="aim-knob"></div>
             </div>
-            <div class="touch-btn-indicators">
-                <div class="touch-ind pause-ind" id="ind-pause">||</div>
+            <div class="touch-btn-indicators" id="touch-btns">
                 <div class="touch-ind fire-ind" id="ind-fire">FIRE</div>
                 <div class="touch-ind weapon-ind" id="ind-weapon">WPN</div>
                 <div class="touch-ind jump-ind" id="ind-jump">JUMP</div>
@@ -100,8 +94,8 @@ export class TouchControls {
                 width: 120px;
                 height: 120px;
                 border-radius: 50%;
-                background: rgba(255,255,255,0.08);
-                border: 2px solid rgba(255,255,255,0.15);
+                background: rgba(255,255,255,0.06);
+                border: 2px solid rgba(255,255,255,0.12);
                 display: none;
                 pointer-events: none;
                 z-index: 1000;
@@ -112,21 +106,22 @@ export class TouchControls {
                 width: 50px;
                 height: 50px;
                 border-radius: 50%;
-                background: rgba(255,255,255,0.25);
-                border: 2px solid rgba(255,255,255,0.4);
+                background: rgba(255,255,255,0.2);
+                border: 2px solid rgba(255,255,255,0.35);
                 top: 50%; left: 50%;
                 transform: translate(-50%, -50%);
                 pointer-events: none;
             }
 
+            /* Buttons: inside game area, right side, vertical stack */
             .touch-btn-indicators {
                 position: absolute;
-                right: 10px;
+                right: 14px;
                 top: 50%;
                 transform: translateY(-50%);
                 display: none;
                 flex-direction: column;
-                gap: 8px;
+                gap: 10px;
                 pointer-events: none;
                 z-index: 1001;
             }
@@ -134,13 +129,13 @@ export class TouchControls {
                 display: flex;
             }
             .touch-ind {
-                width: 64px;
-                height: 44px;
-                border-radius: 12px;
-                border: 2px solid rgba(255,255,255,0.2);
-                background: rgba(255,255,255,0.08);
-                color: rgba(255,255,255,0.7);
-                font-size: 12px;
+                width: 58px;
+                height: 42px;
+                border-radius: 10px;
+                border: 1.5px solid rgba(255,255,255,0.15);
+                background: rgba(0,0,0,0.25);
+                color: rgba(255,255,255,0.5);
+                font-size: 11px;
                 font-weight: bold;
                 font-family: "Segoe UI", Arial, sans-serif;
                 letter-spacing: 1px;
@@ -150,47 +145,54 @@ export class TouchControls {
                 pointer-events: none;
             }
             .touch-ind.pressed {
-                background: rgba(255,255,255,0.3);
-                border-color: rgba(255,255,255,0.5);
+                background: rgba(255,255,255,0.2);
+                border-color: rgba(255,255,255,0.4);
+                color: rgba(255,255,255,0.9);
             }
             .fire-ind {
-                height: 50px;
-                font-size: 14px;
-                background: rgba(255,60,60,0.2);
-                border-color: rgba(255,60,60,0.4);
+                height: 48px;
+                font-size: 13px;
+                background: rgba(255,40,40,0.2);
+                border-color: rgba(255,40,40,0.35);
+                color: rgba(255,120,120,0.7);
             }
-            .fire-ind.pressed { background: rgba(255,60,60,0.5); }
+            .fire-ind.pressed {
+                background: rgba(255,40,40,0.45);
+                border-color: rgba(255,40,40,0.6);
+                color: #fff;
+            }
             .jump-ind {
-                background: rgba(60,255,60,0.12);
-                border-color: rgba(60,255,60,0.25);
+                background: rgba(40,200,40,0.12);
+                border-color: rgba(40,200,40,0.2);
+                color: rgba(120,255,120,0.5);
             }
-            .jump-ind.pressed { background: rgba(60,255,60,0.4); }
+            .jump-ind.pressed {
+                background: rgba(40,200,40,0.35);
+                color: #fff;
+            }
             .rope-ind {
-                background: rgba(60,180,255,0.12);
-                border-color: rgba(60,180,255,0.25);
+                background: rgba(40,140,255,0.12);
+                border-color: rgba(40,140,255,0.2);
+                color: rgba(120,180,255,0.5);
             }
-            .rope-ind.pressed { background: rgba(60,180,255,0.4); }
+            .rope-ind.pressed {
+                background: rgba(40,140,255,0.35);
+                color: #fff;
+            }
             .weapon-ind {
-                background: rgba(255,200,60,0.12);
-                border-color: rgba(255,200,60,0.25);
+                background: rgba(255,180,40,0.12);
+                border-color: rgba(255,180,40,0.2);
+                color: rgba(255,220,120,0.5);
             }
-            .weapon-ind.pressed { background: rgba(255,200,60,0.4); }
-            .pause-ind {
-                width: 40px;
-                height: 36px;
-                font-size: 16px;
-                position: absolute;
-                top: 8px;
-                right: 10px;
-                background: rgba(255,255,255,0.1);
-                border-color: rgba(255,255,255,0.2);
+            .weapon-ind.pressed {
+                background: rgba(255,180,40,0.35);
+                color: #fff;
             }
-            .pause-ind.pressed { background: rgba(255,255,255,0.3); }
 
             @media (max-height: 400px) {
-                .touch-ind { width: 54px; height: 38px; font-size: 10px; }
-                .fire-ind { height: 42px; font-size: 12px; }
-                .touch-btn-indicators { gap: 5px; right: 6px; }
+                .touch-ind { width: 50px; height: 36px; font-size: 10px; }
+                .fire-ind { height: 40px; font-size: 11px; }
+                .touch-btn-indicators { gap: 6px; right: 8px; }
                 .joystick-base { width: 100px; height: 100px; }
                 .joystick-knob { width: 42px; height: 42px; }
             }
@@ -201,29 +203,24 @@ export class TouchControls {
         this.moveKnob = document.getElementById('move-knob');
         this.aimBase = document.getElementById('aim-base');
         this.aimKnob = document.getElementById('aim-knob');
-        this._indicators = document.querySelector('.touch-btn-indicators');
+        this._indicators = document.getElementById('touch-btns');
         this._indMap = {
             fire: document.getElementById('ind-fire'),
             weapon: document.getElementById('ind-weapon'),
             jump: document.getElementById('ind-jump'),
             rope: document.getElementById('ind-rope'),
-            pause: document.getElementById('ind-pause'),
         };
     }
 
     _bindGlobalTouch() {
         const maxDist = 50;
 
-        // Zone detection based on screen coordinates
         const getZone = (x, y, w, h) => {
-            // Top-right corner: pause button (80x50 area)
-            if (x > w - 60 && y < 50) return 'pause';
-            // Right edge (last 76px): action buttons, stacked vertically
-            if (x > w - 76) {
-                const btnH = 44;
-                const fireH = 50;
-                const gap = 8;
-                // Buttons are centered vertically
+            // Right edge (last 70px): action buttons, stacked vertically
+            if (x > w - 70) {
+                const btnH = 42;
+                const fireH = 48;
+                const gap = 10;
                 const totalH = fireH + 3 * btnH + 3 * gap;
                 const startY = (h - totalH) / 2;
                 const relY = y - startY;
@@ -231,11 +228,9 @@ export class TouchControls {
                 if (relY >= fireH + gap && relY < fireH + gap + btnH) return 'weapon';
                 if (relY >= fireH + 2 * gap + btnH && relY < fireH + 2 * gap + 2 * btnH) return 'jump';
                 if (relY >= fireH + 3 * gap + 2 * btnH && relY < totalH) return 'rope';
-                return 'aim'; // fallback to aim if between buttons
+                return 'aim';
             }
-            // Left 40% = move
             if (x < w * 0.4) return 'move';
-            // Remaining area = aim
             return 'aim';
         };
 
@@ -279,10 +274,6 @@ export class TouchControls {
                     this.ropePressedThisFrame = true;
                     this._buttonTouches[t.identifier] = 'rope';
                     this._indMap.rope.classList.add('pressed');
-                } else if (zone === 'pause') {
-                    this.pauseDown = true;
-                    this._buttonTouches[t.identifier] = 'pause';
-                    this._indMap.pause.classList.add('pressed');
                 }
             }
         }, { passive: true });
@@ -330,7 +321,6 @@ export class TouchControls {
                     if (btn === 'weapon') { this.weaponDown = false; this._indMap.weapon.classList.remove('pressed'); }
                     if (btn === 'jump') { this.jumpDown = false; this._indMap.jump.classList.remove('pressed'); }
                     if (btn === 'rope') { this.ropeDown = false; this._indMap.rope.classList.remove('pressed'); }
-                    if (btn === 'pause') { this.pauseDown = false; this._indMap.pause.classList.remove('pressed'); }
                 }
             }
         };
@@ -373,7 +363,6 @@ export class TouchControls {
 
     clearPressed() {
         this.weaponPressedThisFrame = false;
-        this.pauseDown = false;
     }
 
     setGameplay(on) {

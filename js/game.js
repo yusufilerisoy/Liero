@@ -516,7 +516,7 @@ export class Game {
 
     // --- Playing ---
     _updatePlaying(dt) {
-        if (this._justPressed('Escape') || (this.touch && this.touch.active && this.touch.pauseDown)) {
+        if (this._justPressed('Escape')) {
             this.state = GAME_STATE.PAUSED;
             this.pauseIndex = 0;
             return;
